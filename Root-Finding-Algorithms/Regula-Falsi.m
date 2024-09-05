@@ -6,11 +6,12 @@ e = input('Enter your desired tolerance: ');
 
 if f(a)*f(b) < 0 && a < b 
     for i = 1:n
-    c = (a*f(b) - b*f(a)) / (f(b) - f(a))
+    c = (a*f(b) - b*f(a)) / (f(b) - f(a));
+    fprintf('c%d = %.4f\n', i, c)
     if f(a)*f(c) < 0 
-        b = c
+        b = c;
     elseif f(b)*f(c) < 0 
-        a = c
+        a = c;
     end 
     end 
 else 
