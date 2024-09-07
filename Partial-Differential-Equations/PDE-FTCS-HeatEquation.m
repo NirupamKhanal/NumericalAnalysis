@@ -1,7 +1,7 @@
 % Test problem: 
 % 1-D heat equation for a 1m rod: du/dt = alpha * d^2u/dx^2
 % 0 < x < 1, h(dx) = 0.2, 0 < t < 0.6, k(dt) = 0.2
-
+tic
 L = 1-0; % length of rod
 T = 0.06-0; % total time
 alpha = 1; % diffusivity constant 
@@ -45,3 +45,4 @@ plot(t,U(:,l))
 title('t vs U, with x centred')
 xlabel('Time')
 ylabel('Temperature')
+toc
