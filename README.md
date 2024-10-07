@@ -1,4 +1,4 @@
-# Numerical Analysis Repository
+# Numerical Analysis 
 
 This repository contains various numerical methods and algorithms implemented in a variety of programming languages, including Julia, MATLAB, Python, and Fortran. The code is organized into different sections according to topics like interpolation, optimization, root-finding algorithms, linear algebra, and more.
 
