@@ -1,0 +1,122 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.animation import FuncAnimation
+import matplotlib
+matplotlib.use('Agg')
+
+# Create figure and 3D axes
+fig = plt.figure(figsize=(15, 7))
+ax1 = fig.add_subplot(121, projection='3d')
+ax2 = fig.add_subplot(122, projection='3d')
+
+def euler_rotation_matrix(angles):
+    """Create a rotation matrix from Euler angles (XYZ order)"""
+    x, y, z = angles
+    
+    # Individual rotation matrices
+    Rx = np.array([
+        [1, 0, 0],
+        [0, np.cos(x), -np.sin(x)],
+        [0, np.sin(x), np.cos(x)]
+    ])
+    
+    Ry = np.array([
+        [np.cos(y), 0, np.sin(y)],
+        [0, 1, 0],
+        [-np.sin(y), 0, np.cos(y)]
+    ])
+    
+    Rz = np.array([
+        [np.cos(z), -np.sin(z), 0],
+        [np.sin(z), np.cos(z), 0],
+        [0, 0, 1]
+    ])
+    
+    # Combine rotations (XYZ order)
+    return Rz @ Ry @ Rx
+
+def update(frame):
+    ax1.cla()
+    ax2.cla()
+    
+    # Set up axes
+    for ax in [ax1, ax2]:
+        ax.set_xlim([-1.5, 1.5])
+        ax.set_ylim([-1.5, 1.5])
+        ax.set_zlim([-1.5, 1.5])
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        ax.view_init(elev=20, azim=45)
+    
+    angle = frame * np.pi / 180
+    
+    # Euler angles demonstrating gimbal lock
+    # X and Z rotations change, Y fixed at 90 degrees
+    euler_angles = np.array([
+        angle,              # X rotation
+        np.pi/2,           # Y rotation (fixed at 90 degrees)
+        angle              # Z rotation
+    ])
+    
+    R_euler = euler_rotation_matrix(euler_angles)
+    
+    # Quaternion rotation (around [1,1,1] axis)
+    axis = np.array([1, 1, 1])
+    axis = axis / np.linalg.norm(axis)
+    c = np.cos(angle/2)
+    s = np.sin(angle/2)
+    
+    R_quat = np.array([
+        [1-2*s*s*(axis[1]**2 + axis[2]**2), 
+         2*s*(c*axis[2] + s*axis[0]*axis[1]),
+         2*s*(-c*axis[1] + s*axis[0]*axis[2])],
+        [2*s*(-c*axis[2] + s*axis[0]*axis[1]),
+         1-2*s*s*(axis[0]**2 + axis[2]**2),
+         2*s*(c*axis[0] + s*axis[1]*axis[2])],
+        [2*s*(c*axis[1] + s*axis[0]*axis[2]),
+         2*s*(-c*axis[0] + s*axis[1]*axis[2]),
+         1-2*s*s*(axis[0]**2 + axis[1]**2)]
+    ])
+    
+    # Base vectors
+    vectors = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    
+    # Apply rotations
+    euler_rotated = R_euler @ vectors.T
+    quat_rotated = R_quat @ vectors.T
+    
+    # Plot with colors and labels
+    colors = ['red', 'green', 'blue']
+    labels = ['X', 'Y', 'Z']
+    
+    # Plot Euler rotation
+    ax1.set_title('Euler Rotation (XYZ)\nShowing Gimbal Lock', pad=20)
+    for i in range(3):
+        ax1.quiver(0, 0, 0,
+                  euler_rotated[0, i],
+                  euler_rotated[1, i],
+                  euler_rotated[2, i],
+                  color=colors[i], arrow_length_ratio=0.2, linewidth=2,
+                  label=labels[i])
+    ax1.legend()
+    
+    # Plot Quaternion rotation
+    ax2.set_title('Quaternion Rotation\nAround [1,1,1] axis', pad=20)
+    for i in range(3):
+        ax2.quiver(0, 0, 0,
+                  quat_rotated[0, i],
+                  quat_rotated[1, i],
+                  quat_rotated[2, i],
+                  color=colors[i], arrow_length_ratio=0.2, linewidth=2,
+                  label=labels[i])
+    ax2.legend()
+
+# Create and save animation
+anim = FuncAnimation(fig, update, frames=90, interval=50)
+plt.tight_layout()
+
+# Save as MP4
+anim.save('rotation_comparison.mp4', writer='ffmpeg', fps=30)
+print("Animation saved as 'rotation_comparison.mp4'")
